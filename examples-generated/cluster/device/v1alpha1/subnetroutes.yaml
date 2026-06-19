@@ -1,0 +1,15 @@
+apiVersion: device.tailscale.buttah-cloud.io/v1alpha1
+kind: SubnetRoutes
+metadata:
+  annotations:
+    meta.upbound.io/example-id: device/v1alpha1/subnetroutes
+  labels:
+    testing.upbound.io/example-name: sample_routes
+  name: sample-routes
+spec:
+  forProvider:
+    deviceId: ${data.tailscale_device.sample_device.node_id}
+    routes:
+    - 10.0.1.0/24
+    - 1.2.0.0/16
+    - 2.0.0.0/24

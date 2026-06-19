@@ -1,0 +1,30 @@
+apiVersion: aws.tailscale.buttah-cloud.io/v1alpha1
+kind: ExternalID
+metadata:
+  annotations:
+    meta.upbound.io/example-id: aws/v1alpha1/externalid
+  labels:
+    testing.upbound.io/example-name: prod
+  name: prod
+spec:
+  forProvider: {}
+
+---
+
+apiVersion: logstream.tailscale.buttah-cloud.io/v1alpha1
+kind: Configuration
+metadata:
+  annotations:
+    meta.upbound.io/example-id: aws/v1alpha1/externalid
+  labels:
+    testing.upbound.io/example-name: configuration_logs
+  name: configuration-logs
+spec:
+  forProvider:
+    destinationType: s3
+    logType: configuration
+    s3AuthenticationType: rolearn
+    s3Bucket: ${aws_s3_bucket.tailscale_logs.id}
+    s3ExternalId: ${tailscale_aws_external_id.prod.external_id}
+    s3Region: us-west-2
+    s3RoleArn: ${aws_iam_role.logs_writer.arn}

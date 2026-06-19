@@ -1,0 +1,12 @@
+apiVersion: dns.tailscale.m.buttah-cloud.io/v1alpha1
+kind: Preferences
+metadata:
+  annotations:
+    meta.upbound.io/example-id: dns/v1alpha1/preferences
+  labels:
+    testing.upbound.io/example-name: sample_preferences
+  name: sample-preferences
+  namespace: crossplane-system
+spec:
+  forProvider:
+    magicDns: true

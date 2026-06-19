@@ -1,0 +1,17 @@
+apiVersion: posture.tailscale.buttah-cloud.io/v1alpha1
+kind: Integration
+metadata:
+  annotations:
+    meta.upbound.io/example-id: posture/v1alpha1/integration
+  labels:
+    testing.upbound.io/example-name: sample_posture_integration
+  name: sample-posture-integration
+spec:
+  forProvider:
+    clientId: clientid1
+    clientSecretSecretRef:
+      key: example-key
+      name: example-secret
+      namespace: upbound-system
+    cloudId: us-1
+    postureProvider: falcon

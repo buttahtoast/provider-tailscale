@@ -1,0 +1,597 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: configurations.logstream.tailscale.buttah-cloud.io
+spec:
+  group: logstream.tailscale.buttah-cloud.io
+  names:
+    categories:
+    - crossplane
+    - managed
+    - tailscale
+    kind: Configuration
+    listKind: ConfigurationList
+    plural: configurations
+    singular: configuration
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=='Synced')].status
+      name: SYNCED
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: READY
+      type: string
+    - jsonPath: .metadata.annotations.crossplane\.io/external-name
+      name: EXTERNAL-NAME
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: AGE
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Configuration is the Schema for the Configurations API. The logstream_configuration
+          resource allows you to configure streaming configuration or network flow
+          logs to a supported security information and event management (SIEM) system.
+          See https://tailscale.com/kb/1255/log-streaming for more information.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConfigurationSpec defines the desired state of Configuration
+            properties:
+              deletionPolicy:
+                default: Delete
+                description: |-
+                  DeletionPolicy specifies what will happen to the underlying external
+                  when this managed resource is deleted - either "Delete" or "Orphan" the
+                  external resource.
+                  This field is planned to be deprecated in favor of the ManagementPolicies
+                  field in a future release. Currently, both could be set independently and
+                  non-default values would be honored if the feature flag is enabled.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
+                enum:
+                - Orphan
+                - Delete
+                type: string
+              forProvider:
+                properties:
+                  compressionFormat:
+                    description: |-
+                      (String) The compression algorithm used for logs. Valid values are none, zstd or gzip. Defaults to none.
+                      The compression algorithm used for logs. Valid values are `none`, `zstd` or `gzip`. Defaults to `none`.
+                    type: string
+                  destinationType:
+                    description: |-
+                      (String) The type of SIEM platform to stream to. Valid values are axiom, cribl, datadog, elastic, gcs, panther, splunk, and s3.
+                      The type of SIEM platform to stream to. Valid values are `axiom`, `cribl`, `datadog`, `elastic`, `gcs`, `panther`, `splunk`, and `s3`.
+                    type: string
+                  gcsBucket:
+                    description: |-
+                      (String) The name of the GCS bucket
+                      The name of the GCS bucket
+                    type: string
+                  gcsCredentials:
+                    description: |-
+                      (String) The encoded string of JSON that is used to authenticate for workload identity in GCS
+                      The encoded string of JSON that is used to authenticate for workload identity in GCS
+                    type: string
+                  gcsKeyPrefix:
+                    description: |-
+                      (String) The GCS key prefix for the bucket
+                      The GCS key prefix for the bucket
+                    type: string
+                  gcsScopes:
+                    description: |-
+                      (Set of String) The GCS scopes needed to be able to write in the bucket
+                      The GCS scopes needed to be able to write in the bucket
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                  logType:
+                    description: |-
+                      (String) The type of logs to stream. Valid values are configuration (configuration audit logs) and network (network flow logs).
+                      The type of logs to stream. Valid values are `configuration` (configuration audit logs) and `network` (network flow logs).
+                    type: string
+                  s3AccessKeyId:
+                    description: |-
+                      (String) The S3 access key ID. Required if destination_type is s3 and s3_authentication_type is 'accesskey'.
+                      The S3 access key ID. Required if destination_type is s3 and s3_authentication_type is 'accesskey'.
+                    type: string
+                  s3AuthenticationType:
+                    description: |-
+                      (String) The type of authentication to use for S3. Required if destination_type is s3. Valid values are accesskey and rolearn. Tailscale recommends using rolearn.
+                      The type of authentication to use for S3. Required if destination_type is `s3`. Valid values are `accesskey` and `rolearn`. Tailscale recommends using `rolearn`.
+                    type: string
+                  s3Bucket:
+                    description: |-
+                      (String) The S3 bucket name. Required if destination_type is 's3'.
+                      The S3 bucket name. Required if destination_type is 's3'.
+                    type: string
+                  s3ExternalId:
+                    description: |-
+                      based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'. This can be obtained via the tailscale_aws_external_id resource.
+                      The AWS External ID that Tailscale supplies when authenticating using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'. This can be obtained via the tailscale_aws_external_id resource.
+                    type: string
+                  s3KeyPrefix:
+                    description: |-
+                      generated S3 key name.
+                      An optional S3 key prefix to prepend to the auto-generated S3 key name.
+                    type: string
+                  s3Region:
+                    description: |-
+                      (String) The region in which the S3 bucket is located. Required if destination_type is 's3'.
+                      The region in which the S3 bucket is located. Required if destination_type is 's3'.
+                    type: string
+                  s3RoleArn:
+                    description: |-
+                      based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'.
+                      ARN of the AWS IAM role that Tailscale should assume when using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'.
+                    type: string
+                  s3SecretAccessKeySecretRef:
+                    description: |-
+                      (String, Sensitive) The S3 secret access key. Required if destination_type is 's3' and s3_authentication_type is 'accesskey'.
+                      The S3 secret access key. Required if destination_type is 's3' and s3_authentication_type is 'accesskey'.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
+                  tokenSecretRef:
+                    description: |-
+                      (String, Sensitive) The token/password with which log streams to this endpoint should be authenticated, required unless destination_type is 's3'.
+                      The token/password with which log streams to this endpoint should be authenticated, required unless destination_type is 's3'.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
+                  uploadPeriodMinutes:
+                    description: |-
+                      (Number) An optional number of minutes to wait in between uploading new logs. If the quantity of logs does not fit within a single upload, multiple uploads will be made.
+                      An optional number of minutes to wait in between uploading new logs. If the quantity of logs does not fit within a single upload, multiple uploads will be made.
+                    type: number
+                  url:
+                    description: |-
+                      (String) The URL to which log streams are being posted. If destination_type is 's3' and you want to use the official Amazon S3 endpoint, leave this empty.
+                      The URL to which log streams are being posted. If destination_type is 's3' and you want to use the official Amazon S3 endpoint, leave this empty.
+                    type: string
+                  user:
+                    description: |-
+                      (String) The username with which log streams to this endpoint are authenticated. Only required if destination_type is 'elastic', defaults to 'user' if not set.
+                      The username with which log streams to this endpoint are authenticated. Only required if destination_type is 'elastic', defaults to 'user' if not set.
+                    type: string
+                type: object
+              initProvider:
+                description: |-
+                  THIS IS A BETA FIELD. It will be honored
+                  unless the Management Policies feature flag is disabled.
+                  InitProvider holds the same fields as ForProvider, with the exception
+                  of Identifier and other resource reference fields. The fields that are
+                  in InitProvider are merged into ForProvider when the resource is created.
+                  The same fields are also added to the terraform ignore_changes hook, to
+                  avoid updating them after creation. This is useful for fields that are
+                  required on creation, but we do not desire to update them after creation,
+                  for example because of an external controller is managing them, like an
+                  autoscaler.
+                properties:
+                  compressionFormat:
+                    description: |-
+                      (String) The compression algorithm used for logs. Valid values are none, zstd or gzip. Defaults to none.
+                      The compression algorithm used for logs. Valid values are `none`, `zstd` or `gzip`. Defaults to `none`.
+                    type: string
+                  destinationType:
+                    description: |-
+                      (String) The type of SIEM platform to stream to. Valid values are axiom, cribl, datadog, elastic, gcs, panther, splunk, and s3.
+                      The type of SIEM platform to stream to. Valid values are `axiom`, `cribl`, `datadog`, `elastic`, `gcs`, `panther`, `splunk`, and `s3`.
+                    type: string
+                  gcsBucket:
+                    description: |-
+                      (String) The name of the GCS bucket
+                      The name of the GCS bucket
+                    type: string
+                  gcsCredentials:
+                    description: |-
+                      (String) The encoded string of JSON that is used to authenticate for workload identity in GCS
+                      The encoded string of JSON that is used to authenticate for workload identity in GCS
+                    type: string
+                  gcsKeyPrefix:
+                    description: |-
+                      (String) The GCS key prefix for the bucket
+                      The GCS key prefix for the bucket
+                    type: string
+                  gcsScopes:
+                    description: |-
+                      (Set of String) The GCS scopes needed to be able to write in the bucket
+                      The GCS scopes needed to be able to write in the bucket
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                  logType:
+                    description: |-
+                      (String) The type of logs to stream. Valid values are configuration (configuration audit logs) and network (network flow logs).
+                      The type of logs to stream. Valid values are `configuration` (configuration audit logs) and `network` (network flow logs).
+                    type: string
+                  s3AccessKeyId:
+                    description: |-
+                      (String) The S3 access key ID. Required if destination_type is s3 and s3_authentication_type is 'accesskey'.
+                      The S3 access key ID. Required if destination_type is s3 and s3_authentication_type is 'accesskey'.
+                    type: string
+                  s3AuthenticationType:
+                    description: |-
+                      (String) The type of authentication to use for S3. Required if destination_type is s3. Valid values are accesskey and rolearn. Tailscale recommends using rolearn.
+                      The type of authentication to use for S3. Required if destination_type is `s3`. Valid values are `accesskey` and `rolearn`. Tailscale recommends using `rolearn`.
+                    type: string
+                  s3Bucket:
+                    description: |-
+                      (String) The S3 bucket name. Required if destination_type is 's3'.
+                      The S3 bucket name. Required if destination_type is 's3'.
+                    type: string
+                  s3ExternalId:
+                    description: |-
+                      based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'. This can be obtained via the tailscale_aws_external_id resource.
+                      The AWS External ID that Tailscale supplies when authenticating using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'. This can be obtained via the tailscale_aws_external_id resource.
+                    type: string
+                  s3KeyPrefix:
+                    description: |-
+                      generated S3 key name.
+                      An optional S3 key prefix to prepend to the auto-generated S3 key name.
+                    type: string
+                  s3Region:
+                    description: |-
+                      (String) The region in which the S3 bucket is located. Required if destination_type is 's3'.
+                      The region in which the S3 bucket is located. Required if destination_type is 's3'.
+                    type: string
+                  s3RoleArn:
+                    description: |-
+                      based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'.
+                      ARN of the AWS IAM role that Tailscale should assume when using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'.
+                    type: string
+                  s3SecretAccessKeySecretRef:
+                    description: |-
+                      (String, Sensitive) The S3 secret access key. Required if destination_type is 's3' and s3_authentication_type is 'accesskey'.
+                      The S3 secret access key. Required if destination_type is 's3' and s3_authentication_type is 'accesskey'.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
+                  tokenSecretRef:
+                    description: |-
+                      (String, Sensitive) The token/password with which log streams to this endpoint should be authenticated, required unless destination_type is 's3'.
+                      The token/password with which log streams to this endpoint should be authenticated, required unless destination_type is 's3'.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: Name of the secret.
+                        type: string
+                      namespace:
+                        description: Namespace of the secret.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
+                  uploadPeriodMinutes:
+                    description: |-
+                      (Number) An optional number of minutes to wait in between uploading new logs. If the quantity of logs does not fit within a single upload, multiple uploads will be made.
+                      An optional number of minutes to wait in between uploading new logs. If the quantity of logs does not fit within a single upload, multiple uploads will be made.
+                    type: number
+                  url:
+                    description: |-
+                      (String) The URL to which log streams are being posted. If destination_type is 's3' and you want to use the official Amazon S3 endpoint, leave this empty.
+                      The URL to which log streams are being posted. If destination_type is 's3' and you want to use the official Amazon S3 endpoint, leave this empty.
+                    type: string
+                  user:
+                    description: |-
+                      (String) The username with which log streams to this endpoint are authenticated. Only required if destination_type is 'elastic', defaults to 'user' if not set.
+                      The username with which log streams to this endpoint are authenticated. Only required if destination_type is 'elastic', defaults to 'user' if not set.
+                    type: string
+                type: object
+              managementPolicies:
+                default:
+                - '*'
+                description: |-
+                  THIS IS A BETA FIELD. It is on by default but can be opted out
+                  through a Crossplane feature flag.
+                  ManagementPolicies specify the array of actions Crossplane is allowed to
+                  take on the managed and external resources.
+                  This field is planned to replace the DeletionPolicy field in a future
+                  release. Currently, both could be set independently and non-default
+                  values would be honored if the feature flag is enabled. If both are
+                  custom, the DeletionPolicy field will be ignored.
+                  See the design doc for more information: https://github.com/crossplane/crossplane/blob/499895a25d1a1a0ba1604944ef98ac7a1a71f197/design/design-doc-observe-only-resources.md?plain=1#L223
+                  and this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md
+                items:
+                  description: |-
+                    A ManagementAction represents an action that the Crossplane controllers
+                    can take on an external resource.
+                  enum:
+                  - Observe
+                  - Create
+                  - Update
+                  - Delete
+                  - LateInitialize
+                  - '*'
+                  type: string
+                type: array
+              providerConfigRef:
+                default:
+                  name: default
+                description: |-
+                  ProviderConfigReference specifies how the provider that will be used to
+                  create, observe, update, and delete this managed resource should be
+                  configured.
+                properties:
+                  name:
+                    description: Name of the referenced object.
+                    type: string
+                  policy:
+                    description: Policies for referencing.
+                    properties:
+                      resolution:
+                        default: Required
+                        description: |-
+                          Resolution specifies whether resolution of this reference is required.
+                          The default is 'Required', which means the reconcile will fail if the
+                          reference cannot be resolved. 'Optional' means this reference will be
+                          a no-op if it cannot be resolved.
+                        enum:
+                        - Required
+                        - Optional
+                        type: string
+                      resolve:
+                        description: |-
+                          Resolve specifies when this reference should be resolved. The default
+                          is 'IfNotPresent', which will attempt to resolve the reference only when
+                          the corresponding field is not present. Use 'Always' to resolve the
+                          reference on every reconcile.
+                        enum:
+                        - Always
+                        - IfNotPresent
+                        type: string
+                    type: object
+                required:
+                - name
+                type: object
+              writeConnectionSecretToRef:
+                description: |-
+                  WriteConnectionSecretToReference specifies the namespace and name of a
+                  Secret to which any connection details for this managed resource should
+                  be written. Connection details frequently include the endpoint, username,
+                  and password required to connect to the managed resource.
+                properties:
+                  name:
+                    description: Name of the secret.
+                    type: string
+                  namespace:
+                    description: Namespace of the secret.
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
+            required:
+            - forProvider
+            type: object
+            x-kubernetes-validations:
+            - message: spec.forProvider.destinationType is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.destinationType)
+                || (has(self.initProvider) && has(self.initProvider.destinationType))'
+            - message: spec.forProvider.logType is a required parameter
+              rule: '!(''*'' in self.managementPolicies || ''Create'' in self.managementPolicies
+                || ''Update'' in self.managementPolicies) || has(self.forProvider.logType)
+                || (has(self.initProvider) && has(self.initProvider.logType))'
+          status:
+            description: ConfigurationStatus defines the observed state of Configuration.
+            properties:
+              atProvider:
+                properties:
+                  compressionFormat:
+                    description: |-
+                      (String) The compression algorithm used for logs. Valid values are none, zstd or gzip. Defaults to none.
+                      The compression algorithm used for logs. Valid values are `none`, `zstd` or `gzip`. Defaults to `none`.
+                    type: string
+                  destinationType:
+                    description: |-
+                      (String) The type of SIEM platform to stream to. Valid values are axiom, cribl, datadog, elastic, gcs, panther, splunk, and s3.
+                      The type of SIEM platform to stream to. Valid values are `axiom`, `cribl`, `datadog`, `elastic`, `gcs`, `panther`, `splunk`, and `s3`.
+                    type: string
+                  gcsBucket:
+                    description: |-
+                      (String) The name of the GCS bucket
+                      The name of the GCS bucket
+                    type: string
+                  gcsCredentials:
+                    description: |-
+                      (String) The encoded string of JSON that is used to authenticate for workload identity in GCS
+                      The encoded string of JSON that is used to authenticate for workload identity in GCS
+                    type: string
+                  gcsKeyPrefix:
+                    description: |-
+                      (String) The GCS key prefix for the bucket
+                      The GCS key prefix for the bucket
+                    type: string
+                  gcsScopes:
+                    description: |-
+                      (Set of String) The GCS scopes needed to be able to write in the bucket
+                      The GCS scopes needed to be able to write in the bucket
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                  id:
+                    description: (String) The ID of this resource.
+                    type: string
+                  logType:
+                    description: |-
+                      (String) The type of logs to stream. Valid values are configuration (configuration audit logs) and network (network flow logs).
+                      The type of logs to stream. Valid values are `configuration` (configuration audit logs) and `network` (network flow logs).
+                    type: string
+                  s3AccessKeyId:
+                    description: |-
+                      (String) The S3 access key ID. Required if destination_type is s3 and s3_authentication_type is 'accesskey'.
+                      The S3 access key ID. Required if destination_type is s3 and s3_authentication_type is 'accesskey'.
+                    type: string
+                  s3AuthenticationType:
+                    description: |-
+                      (String) The type of authentication to use for S3. Required if destination_type is s3. Valid values are accesskey and rolearn. Tailscale recommends using rolearn.
+                      The type of authentication to use for S3. Required if destination_type is `s3`. Valid values are `accesskey` and `rolearn`. Tailscale recommends using `rolearn`.
+                    type: string
+                  s3Bucket:
+                    description: |-
+                      (String) The S3 bucket name. Required if destination_type is 's3'.
+                      The S3 bucket name. Required if destination_type is 's3'.
+                    type: string
+                  s3ExternalId:
+                    description: |-
+                      based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'. This can be obtained via the tailscale_aws_external_id resource.
+                      The AWS External ID that Tailscale supplies when authenticating using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'. This can be obtained via the tailscale_aws_external_id resource.
+                    type: string
+                  s3KeyPrefix:
+                    description: |-
+                      generated S3 key name.
+                      An optional S3 key prefix to prepend to the auto-generated S3 key name.
+                    type: string
+                  s3Region:
+                    description: |-
+                      (String) The region in which the S3 bucket is located. Required if destination_type is 's3'.
+                      The region in which the S3 bucket is located. Required if destination_type is 's3'.
+                    type: string
+                  s3RoleArn:
+                    description: |-
+                      based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'.
+                      ARN of the AWS IAM role that Tailscale should assume when using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'.
+                    type: string
+                  uploadPeriodMinutes:
+                    description: |-
+                      (Number) An optional number of minutes to wait in between uploading new logs. If the quantity of logs does not fit within a single upload, multiple uploads will be made.
+                      An optional number of minutes to wait in between uploading new logs. If the quantity of logs does not fit within a single upload, multiple uploads will be made.
+                    type: number
+                  url:
+                    description: |-
+                      (String) The URL to which log streams are being posted. If destination_type is 's3' and you want to use the official Amazon S3 endpoint, leave this empty.
+                      The URL to which log streams are being posted. If destination_type is 's3' and you want to use the official Amazon S3 endpoint, leave this empty.
+                    type: string
+                  user:
+                    description: |-
+                      (String) The username with which log streams to this endpoint are authenticated. Only required if destination_type is 'elastic', defaults to 'user' if not set.
+                      The username with which log streams to this endpoint are authenticated. Only required if destination_type is 'elastic', defaults to 'user' if not set.
+                    type: string
+                type: object
+              conditions:
+                description: Conditions of the resource.
+                items:
+                  description: A Condition that may apply to a resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        LastTransitionTime is the last time this condition transitioned from one
+                        status to another.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        A Message containing details about this condition's last transition from
+                        one status to another, if any.
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        ObservedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      type: integer
+                    reason:
+                      description: A Reason for this condition's last transition from
+                        one status to another.
+                      type: string
+                    status:
+                      description: Status of this condition; is it currently True,
+                        False, or Unknown?
+                      type: string
+                    type:
+                      description: |-
+                        Type of this condition. At most one of each condition type may apply to
+                        a resource at any point in time.
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: |-
+                  ObservedGeneration is the latest metadata.generation
+                  which resulted in either a ready state, or stalled due to error
+                  it can not recover from without human intervention.
+                format: int64
+                type: integer
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

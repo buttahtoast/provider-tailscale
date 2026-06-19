@@ -1,0 +1,12 @@
+apiVersion: dns.tailscale.buttah-cloud.io/v1alpha1
+kind: SearchPaths
+metadata:
+  annotations:
+    meta.upbound.io/example-id: dns/v1alpha1/searchpaths
+  labels:
+    testing.upbound.io/example-name: sample_search_paths
+  name: sample-search-paths
+spec:
+  forProvider:
+    searchPaths:
+    - example.com

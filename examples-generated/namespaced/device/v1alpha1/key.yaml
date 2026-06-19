@@ -1,0 +1,13 @@
+apiVersion: device.tailscale.m.buttah-cloud.io/v1alpha1
+kind: Key
+metadata:
+  annotations:
+    meta.upbound.io/example-id: device/v1alpha1/key
+  labels:
+    testing.upbound.io/example-name: example_key
+  name: example-key
+  namespace: crossplane-system
+spec:
+  forProvider:
+    deviceId: ${data.tailscale_device.example_device.node_id}
+    keyExpiryDisabled: true

@@ -1,0 +1,17 @@
+apiVersion: tailscale.tailscale.m.buttah-cloud.io/v1alpha1
+kind: Contacts
+metadata:
+  annotations:
+    meta.upbound.io/example-id: tailscale/v1alpha1/contacts
+  labels:
+    testing.upbound.io/example-name: sample_contacts
+  name: sample-contacts
+  namespace: crossplane-system
+spec:
+  forProvider:
+    account:
+    - email: account@example.com
+    security:
+    - email: security@example.com
+    support:
+    - email: support@example.com
