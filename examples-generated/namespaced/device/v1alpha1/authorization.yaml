@@ -1,0 +1,13 @@
+apiVersion: device.tailscale.m.buttah-cloud.io/v1alpha1
+kind: Authorization
+metadata:
+  annotations:
+    meta.upbound.io/example-id: device/v1alpha1/authorization
+  labels:
+    testing.upbound.io/example-name: sample_authorization
+  name: sample-authorization
+  namespace: crossplane-system
+spec:
+  forProvider:
+    authorized: true
+    deviceId: ${data.tailscale_device.sample_device.node_id}

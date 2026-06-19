@@ -1,0 +1,29 @@
+apiVersion: dns.tailscale.buttah-cloud.io/v1alpha1
+kind: Configuration
+metadata:
+  annotations:
+    meta.upbound.io/example-id: dns/v1alpha1/configuration
+  labels:
+    testing.upbound.io/example-name: sample_configuration
+  name: sample-configuration
+spec:
+  forProvider:
+    magicDns: true
+    nameservers:
+    - address: 8.8.8.8
+    - address: 1.1.1.1
+      useWithExitNode: true
+    overrideLocalDns: true
+    searchPaths:
+    - example.com
+    - anotherexample.com
+    splitDns:
+    - domain: foo.example.com
+      nameservers:
+      - address: 1.1.1.2
+        useWithExitNode: true
+      - address: 1.1.1.3
+    - domain: bar.example.com
+      nameservers:
+      - address: 8.8.8.2
+        useWithExitNode: true

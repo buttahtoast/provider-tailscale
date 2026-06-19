@@ -1,0 +1,639 @@
+name: tailscale/tailscale
+resources:
+    tailscale_acl:
+        subCategory: ""
+        description: The acl resource allows you to configure a Tailscale policy file. See https://tailscale.com/kb/1395/tailnet-policy-file for more information. Note that this resource will completely overwrite existing policy file contents for a given tailnet. If tests are defined in the policy file (the top-level "tests" section), policy file validation will occur before creation and update operations are applied.
+        name: tailscale_acl
+        title: tailscale_acl Resource - terraform-provider-tailscale
+        examples:
+            - name: as_json
+              manifest: |-
+                {
+                  "acl": "${jsonencode({\n    grants = [\n      {\n        // Allow all users access to all ports.\n        src = [\"*\"],\n        dst = [\"*\"],\n        ip  = [\"*\"],\n      },\n    ],\n  })}"
+                }
+            - name: as_hujson
+              manifest: |-
+                {
+                  "acl": "  {\n    // Comments in HuJSON policy are preserved when the policy is applied.\n    \"grants\": [\n      {\n        // Allow all users access to all ports.\n        \"src\": [\"*\"],\n        \"dst\": [\"*\"],\n        \"ip\": [\"*\"],\n      },\n    ],\n  }\n"
+                }
+        argumentDocs:
+            acl: (String) The policy that defines which devices and users are allowed to connect in your network. Can be either a JSON or a HuJSON string.
+            id: (String) The ID of this resource.
+            overwrite_existing_content: (Boolean) If true, will skip requirement to import acl before allowing changes. Be careful, can cause the policy file to be overwritten
+            reset_acl_on_destroy: (Boolean) If true, will reset the policy file for the Tailnet to the default when this resource is destroyed
+        importStatements:
+            - |-
+              # ID doesn't matter.
+              terraform import tailscale_acl.sample_acl acl
+    tailscale_aws_external_id:
+        subCategory: ""
+        description: The aws_external_id resource allows you to mint an AWS External ID that Tailscale can use to assume an AWS IAM role that you create for the purposes of allowing Tailscale to stream logs to your S3 bucket. See the logstream_configuration resource for more details.
+        name: tailscale_aws_external_id
+        title: tailscale_aws_external_id Resource - terraform-provider-tailscale
+        examples:
+            - name: prod
+              manifest: '{}'
+              dependencies:
+                aws_iam_role.logs_writer: |-
+                    {
+                      "assume_role_policy": "${data.aws_iam_policy_document.tailscale_assume_role.json}",
+                      "name": "logs-writer"
+                    }
+                aws_iam_role_policy.logs_writer: |-
+                    {
+                      "policy": "${data.aws_iam_policy_document.logs_writer.json}",
+                      "role": "${aws_iam_role.logs_writer.id}"
+                    }
+                tailscale_logstream_configuration.configuration_logs: |-
+                    {
+                      "destination_type": "s3",
+                      "log_type": "configuration",
+                      "s3_authentication_type": "rolearn",
+                      "s3_bucket": "${aws_s3_bucket.tailscale_logs.id}",
+                      "s3_external_id": "${tailscale_aws_external_id.prod.external_id}",
+                      "s3_region": "us-west-2",
+                      "s3_role_arn": "${aws_iam_role.logs_writer.arn}"
+                    }
+        argumentDocs:
+            external_id: (String) The External ID that Tailscale will supply when assuming your role. You must reference this in your IAM role's trust policy. See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_third-party.html for more information on external IDs.
+            id: (String) The ID of this resource.
+            tailscale_aws_account_id: (String) The AWS account from which Tailscale will assume your role. You must reference this in your IAM role's trust policy. See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_third-party.html for more information on external IDs.
+        importStatements: []
+    tailscale_contacts:
+        subCategory: ""
+        description: The contacts resource allows you to configure contact details for your Tailscale network. See https://tailscale.com/kb/1224/contact-preferences for more information. Destroying this resource does not unset or modify values in the tailscale control plane, and simply removes the resource from Terraform state.
+        name: tailscale_contacts
+        title: tailscale_contacts Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_contacts
+              manifest: |-
+                {
+                  "account": [
+                    {
+                      "email": "account@example.com"
+                    }
+                  ],
+                  "security": [
+                    {
+                      "email": "security@example.com"
+                    }
+                  ],
+                  "support": [
+                    {
+                      "email": "support@example.com"
+                    }
+                  ]
+                }
+        argumentDocs:
+            account: (Block Set) Configuration for communications about important changes to your tailnet (see below for nested schema)
+            email: (String) Email address to send communications to
+            id: (String) The ID of this resource.
+            security: (Block Set) Configuration for communications about security issues affecting your tailnet (see below for nested schema)
+            support: (Block Set) Configuration for communications about misconfigurations in your tailnet (see below for nested schema)
+        importStatements:
+            - |-
+              # ID doesn't matter.
+              terraform import tailscale_contacts.sample_contacts contacts
+    tailscale_device_authorization:
+        subCategory: ""
+        description: The device_authorization resource is used to approve new devices before they can join the tailnet. See https://tailscale.com/kb/1099/device-authorization/ for more details.
+        name: tailscale_device_authorization
+        title: tailscale_device_authorization Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_authorization
+              manifest: |-
+                {
+                  "authorized": true,
+                  "device_id": "${data.tailscale_device.sample_device.node_id}"
+                }
+              references:
+                device_id: data.tailscale_device.sample_device.node_id
+        argumentDocs:
+            authorized: (Boolean) Whether or not the device is authorized
+            device_id: (String) The device to set as authorized
+            id: (String) The ID of this resource.
+        importStatements:
+            - |-
+              # Device authorization can be imported using the node ID (preferred), e.g.,
+              terraform import tailscale_device_authorization.sample_authorization nodeidCNTRL
+              # Device authorization can be imported using the legacy ID, e.g.,
+              terraform import tailscale_device_authorization.sample_authorization 123456789
+    tailscale_device_key:
+        subCategory: ""
+        description: The device_key resource allows you to update the properties of a device's key
+        name: tailscale_device_key
+        title: tailscale_device_key Resource - terraform-provider-tailscale
+        examples:
+            - name: example_key
+              manifest: |-
+                {
+                  "device_id": "${data.tailscale_device.example_device.node_id}",
+                  "key_expiry_disabled": true
+                }
+              references:
+                device_id: data.tailscale_device.example_device.node_id
+        argumentDocs:
+            device_id: (String) The device to update the key properties of
+            id: (String) The ID of this resource.
+            key_expiry_disabled: (Boolean) Determines whether or not the device's key will expire. Defaults to false.
+        importStatements:
+            - |-
+              # Device key can be imported using the node ID (preferred), e.g.,
+              terraform import tailscale_device_key.sample nodeidCNTRL
+              # Device key can be imported using the legacy ID, e.g.,
+              terraform import tailscale_device_key.sample 123456789
+    tailscale_device_subnet_routes:
+        subCategory: ""
+        description: 'The device_subnet_routes resource allows you to configure enabled subnet routes for your Tailscale devices. See https://tailscale.com/kb/1019/subnets for more information. Routes must be both advertised and enabled for a device to act as a subnet router or exit node. Routes must be advertised directly from the device: advertised routes cannot be managed through Terraform. If a device is advertising routes, they are not exposed to traffic until they are enabled. Conversely, if routes are enabled before they are advertised, they are not available for routing until the device in question is advertising them. Note: all routes enabled for the device through the admin console or autoApprovers in the ACL must be explicitly added to the routes attribute of this resource to avoid configuration drift.'
+        name: tailscale_device_subnet_routes
+        title: tailscale_device_subnet_routes Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_routes
+              manifest: |-
+                {
+                  "device_id": "${data.tailscale_device.sample_device.node_id}",
+                  "routes": [
+                    "10.0.1.0/24",
+                    "1.2.0.0/16",
+                    "2.0.0.0/24"
+                  ]
+                }
+              references:
+                device_id: data.tailscale_device.sample_device.node_id
+            - name: sample_exit_node
+              manifest: |-
+                {
+                  "device_id": "${data.tailscale_device.sample_device.node_id}",
+                  "routes": [
+                    "0.0.0.0/0",
+                    "::/0"
+                  ]
+                }
+              references:
+                device_id: data.tailscale_device.sample_device.node_id
+        argumentDocs:
+            device_id: (String) The device to set subnet routes for
+            id: (String) The ID of this resource.
+            routes: (Set of String) The subnet routes that are enabled to be routed by a device
+        importStatements:
+            - |-
+              # Device subnet rules can be imported using the node ID (preferred), e.g.,
+              terraform import tailscale_device_subnet_routes.sample nodeidCNTRL
+              # Device subnet rules can be imported using the legacy ID, e.g.,
+              terraform import tailscale_device_subnet_routes.sample 123456789
+    tailscale_device_tags:
+        subCategory: ""
+        description: The device_tags resource is used to apply tags to Tailscale devices. See https://tailscale.com/kb/1068/acl-tags/ for more details.
+        name: tailscale_device_tags
+        title: tailscale_device_tags Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_tags
+              manifest: |-
+                {
+                  "device_id": "${data.tailscale_device.sample_device.node_id}",
+                  "tags": [
+                    "room:bedroom"
+                  ]
+                }
+              references:
+                device_id: data.tailscale_device.sample_device.node_id
+        argumentDocs:
+            device_id: (String) The device to set tags for
+            id: (String) The ID of this resource.
+            tags: (Set of String) The tags to apply to the device
+        importStatements:
+            - |-
+              # Device tags can be imported using the node ID (preferred), e.g.,
+              terraform import tailscale_device_tags.sample nodeidCNTRL
+              # Device tags can be imported using the legacy ID, e.g.,
+              terraform import tailscale_device_tags.sample 123456789
+    tailscale_dns_configuration:
+        subCategory: ""
+        description: The dns_configuration resource allows you to manage the complete DNS configuration for your Tailscale network. See https://tailscale.com/kb/1054/dns for more information.
+        name: tailscale_dns_configuration
+        title: tailscale_dns_configuration Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_configuration
+              manifest: |-
+                {
+                  "magic_dns": true,
+                  "nameservers": [
+                    {
+                      "address": "8.8.8.8"
+                    },
+                    {
+                      "address": "1.1.1.1",
+                      "use_with_exit_node": true
+                    }
+                  ],
+                  "override_local_dns": true,
+                  "search_paths": [
+                    "example.com",
+                    "anotherexample.com"
+                  ],
+                  "split_dns": [
+                    {
+                      "domain": "foo.example.com",
+                      "nameservers": [
+                        {
+                          "address": "1.1.1.2",
+                          "use_with_exit_node": true
+                        },
+                        {
+                          "address": "1.1.1.3"
+                        }
+                      ]
+                    },
+                    {
+                      "domain": "bar.example.com",
+                      "nameservers": [
+                        {
+                          "address": "8.8.8.2",
+                          "use_with_exit_node": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+        argumentDocs:
+            address: (String) The nameserver's IPv4 or IPv6 address
+            domain: (String) The nameservers will be used only for this domain.
+            id: (String) The ID of this resource.
+            magic_dns: (Boolean) Whether or not to enable MagicDNS. Defaults to true.
+            nameservers: (Block List) Set the nameservers used by devices on your network to resolve DNS queries. override_local_dns must also be true to prefer these nameservers over local DNS configuration. (see below for nested schema)
+            override_local_dns: (Boolean) When enabled, use the configured DNS servers in nameservers to resolve names outside the tailnet. When disabled, devices will prefer their local DNS configuration. Defaults to false.
+            search_paths: (List of String) Additional search domains. When MagicDNS is on, the tailnet domain is automatically included as the first search domain.
+            split_dns: (Block List) Set the nameservers used by devices on your network to resolve DNS queries on specific domains (requires Tailscale v1.8 or later). Configuration does not depend on override_local_dns. (see below for nested schema)
+            use_with_exit_node: (Boolean) This nameserver will continue to be used when an exit node is selected (requires Tailscale v1.88.1 or later). Defaults to false.
+        importStatements:
+            - |-
+              # ID doesn't matter.
+              terraform import tailscale_dns_configuration.sample_configuration dns_configuration
+    tailscale_dns_nameservers:
+        subCategory: ""
+        description: The dns_nameservers resource allows you to configure DNS nameservers for your Tailscale network. See https://tailscale.com/kb/1054/dns for more information.
+        name: tailscale_dns_nameservers
+        title: tailscale_dns_nameservers Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_nameservers
+              manifest: |-
+                {
+                  "nameservers": [
+                    "8.8.8.8",
+                    "8.8.4.4"
+                  ]
+                }
+        argumentDocs:
+            id: (String) The ID of this resource.
+            nameservers: (List of String) Devices on your network will use these nameservers to resolve DNS names. IPv4 or IPv6 addresses are accepted.
+        importStatements:
+            - |-
+              # ID doesn't matter.
+              terraform import tailscale_dns_nameservers.sample dns_nameservers
+    tailscale_dns_preferences:
+        subCategory: ""
+        description: The dns_preferences resource allows you to configure DNS preferences for your Tailscale network. See https://tailscale.com/kb/1054/dns for more information.
+        name: tailscale_dns_preferences
+        title: tailscale_dns_preferences Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_preferences
+              manifest: |-
+                {
+                  "magic_dns": true
+                }
+        argumentDocs:
+            id: (String) The ID of this resource.
+            magic_dns: (Boolean) Whether or not to enable magic DNS
+        importStatements:
+            - |-
+              # ID doesn't matter.
+              terraform import tailscale_dns_preferences.sample_preferences dns_preferences
+    tailscale_dns_search_paths:
+        subCategory: ""
+        description: The dns_search_paths resource allows you to configure DNS search paths for your Tailscale network. See https://tailscale.com/kb/1054/dns for more information.
+        name: tailscale_dns_search_paths
+        title: tailscale_dns_search_paths Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_search_paths
+              manifest: |-
+                {
+                  "search_paths": [
+                    "example.com"
+                  ]
+                }
+        argumentDocs:
+            id: (String) The ID of this resource.
+            search_paths: (List of String) Devices on your network will use these domain suffixes to resolve DNS names.
+        importStatements:
+            - |-
+              # ID doesn't matter.
+              terraform import tailscale_dns_search_paths.sample dns_search_paths
+    tailscale_dns_split_nameservers:
+        subCategory: ""
+        description: The dns_split_nameservers resource allows you to configure split DNS nameservers for your Tailscale network. See https://tailscale.com/kb/1054/dns for more information.
+        name: tailscale_dns_split_nameservers
+        title: tailscale_dns_split_nameservers Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_split_nameservers
+              manifest: |-
+                {
+                  "domain": "foo.example.com",
+                  "nameservers": [
+                    "1.1.1.1"
+                  ]
+                }
+        argumentDocs:
+            domain: (String) Domain to configure split DNS for. Requests for this domain will be resolved using the provided nameservers. Changing this will force the resource to be recreated.
+            id: (String) The ID of this resource.
+            nameservers: (Set of String) Devices on your network will use these nameservers to resolve DNS names. IPv4 or IPv6 addresses are accepted.
+        importStatements:
+            - |-
+              # Split DNS nameservers can be imported using the domain name, e.g.
+              terraform import tailscale_dns_split_nameservers.sample_split_nameservers example.com
+    tailscale_federated_identity:
+        subCategory: ""
+        description: The federated_identity resource allows you to create federated identities to programmatically interact with the Tailscale API using workload identity federation.
+        name: tailscale_federated_identity
+        title: tailscale_federated_identity Resource - terraform-provider-tailscale
+        examples:
+            - name: example_federated_identity
+              manifest: |-
+                {
+                  "custom_claim_rules": {
+                    "repo_name": "example-repo-name"
+                  },
+                  "description": "Example federated identity",
+                  "issuer": "https://example.com",
+                  "scopes": [
+                    "auth_keys",
+                    "devices:core"
+                  ],
+                  "subject": "example-sub-*",
+                  "tags": [
+                    "tag:test"
+                  ]
+                }
+        argumentDocs:
+            audience: (String) The value used when matching against the aud claim from an OIDC identity token. Specifying the audience is optional as Tailscale will generate a secure audience at creation time by default.   It is recommended to let Tailscale generate the audience unless the identity provider you are integrating with requires a specific audience format.
+            created_at: (String) The creation timestamp of the key in RFC3339 format
+            custom_claim_rules: (Map of String) A map of claim names to pattern strings used to match against arbitrary claims in the OIDC identity token. Patterns can include * characters to match against any character.
+            description: (String) A description of the federated identity consisting of alphanumeric characters. Defaults to "".
+            id: (String) The client ID, also known as the key id. Used with an OIDC identity token to generate access tokens.
+            issuer: (String) The issuer of the OIDC identity token used in the token exchange. Must be a valid and publicly reachable https:// URL.
+            scopes: (Set of String) Scopes to grant to the federated identity. See https://tailscale.com/kb/1623/ for a list of available scopes.
+            subject: (String) The pattern used when matching against the sub claim from an OIDC identity token. Patterns can include * characters to match against any character.
+            tags: (Set of String) A list of tags that access tokens generated for the federated identity will be able to assign to devices. Mandatory if the scopes include "devices:core" or "auth_keys".
+            updated_at: (String) The updated timestamp of the key in RFC3339 format
+            user_id: (String) ID of the user who created this federated identity, empty for federated identities created by other trust credentials.
+        importStatements:
+            - terraform import tailscale_federated_identity.example k1234511CNTRL-kZDRvszg8621CNTRL
+    tailscale_logstream_configuration:
+        subCategory: ""
+        description: The logstream_configuration resource allows you to configure streaming configuration or network flow logs to a supported security information and event management (SIEM) system. See https://tailscale.com/kb/1255/log-streaming for more information.
+        name: tailscale_logstream_configuration
+        title: tailscale_logstream_configuration Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_logstream_configuration
+              manifest: |-
+                {
+                  "destination_type": "panther",
+                  "log_type": "configuration",
+                  "token": "some-token",
+                  "url": "https://example.com"
+                }
+            - name: sample_logstream_configuration_s3
+              manifest: |-
+                {
+                  "destination_type": "s3",
+                  "log_type": "configuration",
+                  "s3_authentication_type": "rolearn",
+                  "s3_bucket": "${aws_s3_bucket.tailscale_logs.id}",
+                  "s3_external_id": "${tailscale_aws_external_id.prod.external_id}",
+                  "s3_region": "us-west-2",
+                  "s3_role_arn": "${aws_iam_role.tailscale_logs_writer.arn}"
+                }
+              references:
+                s3_bucket: aws_s3_bucket.tailscale_logs.id
+                s3_external_id: tailscale_aws_external_id.prod.external_id
+                s3_role_arn: aws_iam_role.tailscale_logs_writer.arn
+            - name: sample_logstream_configuration_s3_compatible
+              manifest: |-
+                {
+                  "destination_type": "s3",
+                  "log_type": "configuration",
+                  "s3_access_key_id": "some-access-key",
+                  "s3_authentication_type": "accesskey",
+                  "s3_bucket": "example-bucket",
+                  "s3_region": "us-west-2",
+                  "s3_secret_access_key": "some-secret-key",
+                  "url": "https://s3.example.com"
+                }
+            - name: sample_logstream_configuration_gcs_wif
+              manifest: |-
+                {
+                  "destination_type": "gcs",
+                  "gcs_bucket": "example-gcs-bucket",
+                  "gcs_credentials": "${jsonencode({\n    type = \"external_account\"\n    audience = \"//iam.googleapis.com/projects/12345678/locations/global/workloadIdentityPools/example-pool/providers/example-provider\"\n    subject_token_type = \"urn:ietf:params:aws:token-type:aws4_request\"\n    service_account_impersonation_url = \"https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/example@example.iam.gserviceaccount.com:generateAccessToken\"\n    token_url = \"https://sts.googleapis.com/v1/token\"\n    credential_source = {\n      environment_id = \"aws1\"\n      region_url = \"http://169.254.169.254/latest/meta-data/placement/availability-zone\"\n      url = \"http://169.254.169.254/latest/meta-data/iam/security-credentials\"\n      regional_cred_verification_url = \"https://sts.{region}.amazonaws.com?Action=GetCallerIdentity\u0026Version=2011-06-15\"\n      imdsv2_session_token_url = \"http://169.254.169.254/latest/api/token\"\n    }\n  })}",
+                  "log_type": "configuration"
+                }
+        argumentDocs:
+            compression_format: (String) The compression algorithm used for logs. Valid values are none, zstd or gzip. Defaults to none.
+            destination_type: (String) The type of SIEM platform to stream to. Valid values are axiom, cribl, datadog, elastic, gcs, panther, splunk, and s3.
+            gcs_bucket: (String) The name of the GCS bucket
+            gcs_credentials: (String) The encoded string of JSON that is used to authenticate for workload identity in GCS
+            gcs_key_prefix: (String) The GCS key prefix for the bucket
+            gcs_scopes: (Set of String) The GCS scopes needed to be able to write in the bucket
+            id: (String) The ID of this resource.
+            log_type: (String) The type of logs to stream. Valid values are configuration (configuration audit logs) and network (network flow logs).
+            s3_access_key_id: (String) The S3 access key ID. Required if destination_type is s3 and s3_authentication_type is 'accesskey'.
+            s3_authentication_type: (String) The type of authentication to use for S3. Required if destination_type is s3. Valid values are accesskey and rolearn. Tailscale recommends using rolearn.
+            s3_bucket: (String) The S3 bucket name. Required if destination_type is 's3'.
+            s3_external_id: (String) The AWS External ID that Tailscale supplies when authenticating using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'. This can be obtained via the tailscale_aws_external_id resource.
+            s3_key_prefix: (String) An optional S3 key prefix to prepend to the auto-generated S3 key name.
+            s3_region: (String) The region in which the S3 bucket is located. Required if destination_type is 's3'.
+            s3_role_arn: (String) ARN of the AWS IAM role that Tailscale should assume when using role-based authentication. Required if destination_type is 's3' and s3_authentication_type is 'rolearn'.
+            s3_secret_access_key: (String, Sensitive) The S3 secret access key. Required if destination_type is 's3' and s3_authentication_type is 'accesskey'.
+            token: (String, Sensitive) The token/password with which log streams to this endpoint should be authenticated, required unless destination_type is 's3'.
+            upload_period_minutes: (Number) An optional number of minutes to wait in between uploading new logs. If the quantity of logs does not fit within a single upload, multiple uploads will be made.
+            url: (String) The URL to which log streams are being posted. If destination_type is 's3' and you want to use the official Amazon S3 endpoint, leave this empty.
+            user: (String) The username with which log streams to this endpoint are authenticated. Only required if destination_type is 'elastic', defaults to 'user' if not set.
+        importStatements:
+            - |-
+              # Logstream configuration can be imported using the logstream configuration id, e.g.,
+              terraform import tailscale_logstream_configuration.sample_logstream_configuration 123456789
+    tailscale_oauth_client:
+        subCategory: ""
+        description: The oauth_client resource allows you to create OAuth clients to programmatically interact with the Tailscale API.
+        name: tailscale_oauth_client
+        title: tailscale_oauth_client Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_client
+              manifest: |-
+                {
+                  "description": "sample client",
+                  "scopes": [
+                    "all:read"
+                  ],
+                  "tags": [
+                    "tag:test"
+                  ]
+                }
+        argumentDocs:
+            created_at: (String) The creation timestamp of the key in RFC3339 format
+            description: (String) A description of the OAuth client consisting of alphanumeric characters. Defaults to "".
+            id: (String) The client ID, also known as the key id. Used with the client secret to generate access tokens.
+            key: (String, Sensitive) The client secret, also known as the key. Used with the client ID to generate access tokens.
+            scopes: (Set of String) Scopes to grant to the client. See https://tailscale.com/kb/1623/ for a list of available scopes.
+            tags: (Set of String) A list of tags that access tokens generated for the OAuth client will be able to assign to devices. Mandatory if the scopes include "devices:core" or "auth_keys".
+            updated_at: (String) The updated timestamp of the key in RFC3339 format
+            user_id: (String) ID of the user who created this key, empty for OAuth clients created by other trust credentials.
+        importStatements:
+            - |-
+              # Note: Sensitive fields such as the secret key are not returned by the API and will be unset in the Terraform state after import.
+              terraform import tailscale_oauth_client.example k1234511CNTRL
+    tailscale_posture_integration:
+        subCategory: ""
+        description: The posture_integration resource allows you to manage integrations with device posture data providers. See https://tailscale.com/kb/1288/device-posture for more information.
+        name: tailscale_posture_integration
+        title: tailscale_posture_integration Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_posture_integration
+              manifest: |-
+                {
+                  "client_id": "clientid1",
+                  "client_secret": "test-secret1",
+                  "cloud_id": "us-1",
+                  "posture_provider": "falcon"
+                }
+        argumentDocs:
+            client_id: (String) Unique identifier for your client.
+            client_secret: (String, Sensitive) The secret (auth key, token, etc.) used to authenticate with the provider.
+            cloud_id: (String) Identifies which of the provider's clouds to integrate with.
+            id: (String) The ID of this resource.
+            posture_provider: (String) The third-party provider for posture data. Valid values are falcon, fleet, huntress, intune, jamfpro, kandji, kolide, and sentinelone.
+            tenant_id: (String) The Microsoft Intune directory (tenant) ID. For other providers, this is left blank.
+        importStatements:
+            - |-
+              # Posture integration can be imported using the posture integration id, e.g.,
+              terraform import tailscale_posture_integration.sample_posture_integration 123456789
+    tailscale_service:
+        subCategory: ""
+        description: The Service resource allows you to manage Tailscale Services in your Tailscale network. Services let you publish internal resources (like databases or web servers) as named resources in your tailnet. Services provide a stable MagicDNS name, a Tailscale virtual IP address pair, can be served by multiple nodes, and are valid access control destinations. See https://tailscale.com/docs/features/tailscale-services) for more information.
+        name: tailscale_service
+        title: tailscale_service Resource - terraform-provider-tailscale
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "comment": "My service",
+                  "name": "svc:my-service",
+                  "ports": [
+                    "tcp:443"
+                  ],
+                  "tags": [
+                    "tag:web"
+                  ]
+                }
+        argumentDocs:
+            addrs: (List of String) The IP addresses assigned to the Service.
+            comment: (String) An optional comment describing the Service.
+            id: (String) The Service name, e.g. 'svc:my-service'.
+            name: (String) The name of the Service. Must begin with svc:.
+            ports: (Set of String) A list of protocol:port pairs to be exposed by the Service. The only supported protocol is "tcp" at this time. "do-not-validate" can be used to skip validation.
+            tags: (Set of String) The ACL tags applied to the Service.
+        importStatements: []
+    tailscale_tailnet_key:
+        subCategory: ""
+        description: The tailnet_key resource allows you to create pre-authentication keys that can register new nodes without needing to sign in via a web browser. See https://tailscale.com/kb/1085/auth-keys for more information
+        name: tailscale_tailnet_key
+        title: tailscale_tailnet_key Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_key
+              manifest: |-
+                {
+                  "description": "Sample key",
+                  "ephemeral": false,
+                  "expiry": 3600,
+                  "preauthorized": true,
+                  "reusable": true
+                }
+        argumentDocs:
+            created_at: (String) The creation timestamp of the key in RFC3339 format
+            description: (String) A description of the key consisting of alphanumeric characters. Defaults to "".
+            ephemeral: (Boolean) Indicates if the key is ephemeral. Defaults to false.
+            expires_at: (String) The expiry timestamp of the key in RFC3339 format
+            expiry: (Number) The expiry of the key in seconds. Defaults to 7776000 (90 days).
+            id: (String) The ID of this resource.
+            invalid: (Boolean) Indicates whether the key is invalid (e.g. expired, revoked or has been deleted).
+            key: (String, Sensitive) The authentication key
+            preauthorized: (Boolean) Determines whether or not the machines authenticated by the key will be authorized for the tailnet by default. Defaults to false.
+            recreate_if_invalid: '(String) Determines whether the key should be created again if it becomes invalid. By default, reusable keys will be recreated, but single-use keys will not. Possible values: ''always'', ''never''.'
+            reusable: (Boolean) Indicates if the key is reusable or single-use. Defaults to false.
+            tags: (Set of String) List of tags to apply to the machines authenticated by the key.
+            user_id: (String) ID of the user who created this key, empty for keys created by OAuth clients.
+        importStatements:
+            - |-
+              # Tailnet key can be imported using the key id, e.g.,
+              terraform import tailscale_tailnet_key.sample_key 123456789
+    tailscale_tailnet_settings:
+        subCategory: ""
+        description: The tailnet_settings resource allows you to configure settings for your tailnet. See https://tailscale.com/api#tag/tailnetsettings for more information.
+        name: tailscale_tailnet_settings
+        title: tailscale_tailnet_settings Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_tailnet_settings
+              manifest: |-
+                {
+                  "acls_external_link": "https://github.com/octocat/Hello-World",
+                  "acls_externally_managed_on": true,
+                  "devices_approval_on": true,
+                  "devices_auto_updates_on": true,
+                  "devices_key_duration_days": 5,
+                  "https_enabled": true,
+                  "posture_identity_collection_on": true,
+                  "users_approval_on": true,
+                  "users_role_allowed_to_join_external_tailnet": "member"
+                }
+        argumentDocs:
+            acls_external_link: (String) Link to your external ACL definition or management system. Must be a valid URL.
+            acls_externally_managed_on: (Boolean) Prevent users from editing policies in the admin console to avoid conflicts with external management workflows like GitOps or Terraform.
+            devices_approval_on: (Boolean) Whether device approval is enabled for the tailnet
+            devices_auto_updates_on: (Boolean) Whether auto updates are enabled for devices that belong to this tailnet
+            devices_key_duration_days: (Number) The key expiry duration for devices on this tailnet
+            https_enabled: (Boolean) Whether provisioning of HTTPS certificates is enabled for the tailnet
+            id: (String) The ID of this resource.
+            network_flow_logging_on: (Boolean) Whether network flow logs are enabled for the tailnet
+            posture_identity_collection_on: (Boolean) Whether identity collection is enabled for device posture integrations for the tailnet
+            regional_routing_on: (Boolean) Whether regional routing is enabled for the tailnet
+            users_approval_on: (Boolean) Whether user approval is enabled for this tailnet
+            users_role_allowed_to_join_external_tailnet: (String) Which user roles are allowed to join external tailnets
+        importStatements:
+            - |-
+              # ID doesn't matter.
+              terraform import tailscale_tailnet_settings.sample_preferences tailnet_settings
+    tailscale_webhook:
+        subCategory: ""
+        description: The webhook resource allows you to configure webhook endpoints for your Tailscale network. See https://tailscale.com/kb/1213/webhooks for more information.
+        name: tailscale_webhook
+        title: tailscale_webhook Resource - terraform-provider-tailscale
+        examples:
+            - name: sample_webhook
+              manifest: |-
+                {
+                  "endpoint_url": "https://example.com/webhook/endpoint",
+                  "provider_type": "slack",
+                  "subscriptions": [
+                    "nodeCreated",
+                    "userDeleted"
+                  ]
+                }
+        argumentDocs:
+            endpoint_url: (String) The endpoint to send webhook events to.
+            id: (String) The ID of this resource.
+            provider_type: (String) The provider type of the endpoint URL. This determines the payload format sent to the destination. Valid values are slack, mattermost, googlechat, and discord.
+            secret: (String, Sensitive) The secret used for signing webhook payloads. Only set on resource creation. See https://tailscale.com/kb/1213/webhooks#webhook-secret for more information.
+            subscriptions: (Set of String) The set of events that trigger this webhook. For a full list of event types, see the webhooks documentation.
+        importStatements:
+            - |-
+              # Webhooks can be imported using the endpoint id, e.g.,
+              terraform import tailscale_webhook.sample_webhook 123456789

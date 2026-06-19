@@ -1,0 +1,20 @@
+apiVersion: federated.tailscale.buttah-cloud.io/v1alpha1
+kind: Identity
+metadata:
+  annotations:
+    meta.upbound.io/example-id: federated/v1alpha1/identity
+  labels:
+    testing.upbound.io/example-name: example_federated_identity
+  name: example-federated-identity
+spec:
+  forProvider:
+    customClaimRules:
+      repo_name: example-repo-name
+    description: Example federated identity
+    issuer: https://example.com
+    scopes:
+    - auth_keys
+    - devices:core
+    subject: example-sub-*
+    tags:
+    - tag:test

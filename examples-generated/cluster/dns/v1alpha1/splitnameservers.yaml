@@ -1,0 +1,13 @@
+apiVersion: dns.tailscale.buttah-cloud.io/v1alpha1
+kind: SplitNameservers
+metadata:
+  annotations:
+    meta.upbound.io/example-id: dns/v1alpha1/splitnameservers
+  labels:
+    testing.upbound.io/example-name: sample_split_nameservers
+  name: sample-split-nameservers
+spec:
+  forProvider:
+    domain: foo.example.com
+    nameservers:
+    - 1.1.1.1

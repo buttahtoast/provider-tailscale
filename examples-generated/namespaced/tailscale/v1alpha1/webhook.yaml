@@ -1,0 +1,16 @@
+apiVersion: tailscale.tailscale.m.buttah-cloud.io/v1alpha1
+kind: Webhook
+metadata:
+  annotations:
+    meta.upbound.io/example-id: tailscale/v1alpha1/webhook
+  labels:
+    testing.upbound.io/example-name: sample_webhook
+  name: sample-webhook
+  namespace: crossplane-system
+spec:
+  forProvider:
+    endpointUrl: https://example.com/webhook/endpoint
+    providerType: slack
+    subscriptions:
+    - nodeCreated
+    - userDeleted

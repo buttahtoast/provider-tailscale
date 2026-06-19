@@ -1,0 +1,16 @@
+apiVersion: oauth.tailscale.m.buttah-cloud.io/v1alpha1
+kind: Client
+metadata:
+  annotations:
+    meta.upbound.io/example-id: oauth/v1alpha1/client
+  labels:
+    testing.upbound.io/example-name: sample_client
+  name: sample-client
+  namespace: crossplane-system
+spec:
+  forProvider:
+    description: sample client
+    scopes:
+    - all:read
+    tags:
+    - tag:test

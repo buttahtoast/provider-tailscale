@@ -1,0 +1,17 @@
+apiVersion: logstream.tailscale.buttah-cloud.io/v1alpha1
+kind: Configuration
+metadata:
+  annotations:
+    meta.upbound.io/example-id: logstream/v1alpha1/configuration
+  labels:
+    testing.upbound.io/example-name: sample_logstream_configuration
+  name: sample-logstream-configuration
+spec:
+  forProvider:
+    destinationType: panther
+    logType: configuration
+    tokenSecretRef:
+      key: example-key
+      name: example-secret
+      namespace: upbound-system
+    url: https://example.com

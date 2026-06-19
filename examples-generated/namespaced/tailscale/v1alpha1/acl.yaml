@@ -1,0 +1,22 @@
+apiVersion: tailscale.tailscale.m.buttah-cloud.io/v1alpha1
+kind: ACL
+metadata:
+  annotations:
+    meta.upbound.io/example-id: tailscale/v1alpha1/acl
+  labels:
+    testing.upbound.io/example-name: as_json
+  name: as-json
+  namespace: crossplane-system
+spec:
+  forProvider:
+    acl: |-
+      ${jsonencode({
+          grants = [
+            {
+              // Allow all users access to all ports.
+              src = ["*"],
+              dst = ["*"],
+              ip  = ["*"],
+            },
+          ],
+        })}

@@ -1,0 +1,15 @@
+apiVersion: tailnet.tailscale.buttah-cloud.io/v1alpha1
+kind: Key
+metadata:
+  annotations:
+    meta.upbound.io/example-id: tailnet/v1alpha1/key
+  labels:
+    testing.upbound.io/example-name: sample_key
+  name: sample-key
+spec:
+  forProvider:
+    description: Sample key
+    ephemeral: false
+    expiry: 3600
+    preauthorized: true
+    reusable: true
