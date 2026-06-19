@@ -16,21 +16,21 @@ import (
 )
 
 const (
-	keyAPIKey                       = "api_key"
-	keyAudience                     = "audience"
-	keyBaseURL                      = "base_url"
-	keyIdentityToken                = "identity_token"
-	keyIdentityTokenEnvVarName      = "identity_token_environment_variable_name"
-	keyOAuthClientID                = "oauth_client_id"
-	keyOAuthClientSecret            = "oauth_client_secret"
-	keyScopes                       = "scopes"
-	keyTailnet                      = "tailnet"
-	keyUserAgent                    = "user_agent"
-	errNoProviderConfig             = "no providerConfigRef provided"
-	errGetProviderConfig            = "cannot get referenced ProviderConfig"
-	errTrackUsage                   = "cannot track ProviderConfig usage"
-	errExtractCredentials           = "cannot extract credentials"
-	errUnmarshalCredentials         = "cannot unmarshal tailscale credentials as JSON"
+	keyAPIKey                  = "api_key"
+	keyAudience                = "audience"
+	keyBaseURL                 = "base_url"
+	keyIdentityToken           = "identity_token"
+	keyIdentityTokenEnvVarName = "identity_token_environment_variable_name"
+	keyOAuthClientID           = "oauth_client_id"
+	keyOAuthClientSecret       = "oauth_client_secret"
+	keyScopes                  = "scopes"
+	keyTailnet                 = "tailnet"
+	keyUserAgent               = "user_agent"
+	errNoProviderConfig        = "no providerConfigRef provided"
+	errGetProviderConfig       = "cannot get referenced ProviderConfig"
+	errTrackUsage              = "cannot track ProviderConfig usage"
+	errExtractCredentials      = "cannot extract credentials"
+	errUnmarshalCredentials    = "cannot unmarshal tailscale credentials as JSON"
 )
 
 // TerraformSetupBuilder builds Terraform a terraform.SetupFn function which

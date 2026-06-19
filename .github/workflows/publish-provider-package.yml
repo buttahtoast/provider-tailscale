@@ -1,16 +1,16 @@
 name: Publish Provider Package
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version string to use while publishing the package (e.g. v1.0.0-alpha.1)"
-        default: ''
-        required: false
-      go-version:
-        description: 'Go version to use if building needs to be done'
-        default: '1.24'
-        required: false
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  GO_VERSION: '1.24'
 
 jobs:
   publish-provider-package:
@@ -18,10 +18,31 @@ jobs:
     with:
       repository: provider-tailscale
       registry_org: buttah-cloud
-      version: ${{ github.event.inputs.version }}
-      go-version: ${{ github.event.inputs.go-version }}
+      version: ${{ github.ref_name }}
+      go-version: ${{ env.GO_VERSION }}
       cleanup-disk: true
     secrets:
       GHCR_PAT: ${{ secrets.GITHUB_TOKEN }}
       XPKG_MIRROR_TOKEN: ${{ secrets.XPKG_MIRROR_TOKEN }}
       XPKG_MIRROR_ACCESS_ID: ${{ secrets.XPKG_MIRROR_ACCESS_ID }}
+
+  publish-github-release:
+    runs-on: ubuntu-24.04
+    needs: publish-provider-package
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v2.2.0
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          generate_release_notes: true
+          make_latest: ${{ !(contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc')) }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
